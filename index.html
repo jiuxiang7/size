@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>图片压缩 · 压缩到指定大小</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2366ccff'/%3E%3Cpath d='M16 8v12m0 0 5-5m-5 5-5-5M9 24h14' stroke='%230b3f5c' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/>
+        <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/>
+        <path d="M12 8v8"/><path d="m8.5 12.5 3.5 3.5 3.5-3.5"/>
+      </svg>
+    </span>
+    <span class="brand-text">图片压缩</span>
+  </div>
+  <div class="privacy">
+    <span class="dot"></span>
+    <span class="privacy-full">全部在本地浏览器处理，文件不上传</span>
+    <span class="privacy-short">本地处理，不上传</span>
+  </div>
+</header>
+
+<main>
+  <section class="panel panel-top">
+    <div class="panel-head">
+      <h1>把文件压到指定大小</h1>
+      <p>上传图片或 PDF，设定目标体积，自动压到目标以内 —— 图片走质量与分辨率双搜索，PDF 走结构优化 / 页面重绘。</p>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label class="label">目标大小</label>
+        <div class="size-input">
+          <input id="targetValue" type="number" min="10" step="1" value="500" inputmode="numeric">
+          <select id="targetUnit">
+            <option value="1024">KB</option>
+            <option value="1048576">MB</option>
+          </select>
+        </div>
+        <div class="chips" id="presets">
+          <button class="chip" data-value="100" data-unit="1024">100 KB</button>
+          <button class="chip" data-value="200" data-unit="1024">200 KB</button>
+          <button class="chip" data-value="300" data-unit="1024">300 KB</button>
+          <button class="chip is-active" data-value="500" data-unit="1024">500 KB</button>
+          <button class="chip" data-value="1" data-unit="1048576">1 MB</button>
+          <button class="chip" data-value="2" data-unit="1048576">2 MB</button>
+          <button class="chip" data-value="5" data-unit="1048576">5 MB</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">图片输出格式</label>
+        <div class="segmented" data-seg="format">
+          <button data-value="auto" class="is-active">智能</button>
+          <button data-value="jpeg">JPG</button>
+          <button data-value="webp">WebP</button>
+          <button data-value="png">PNG</button>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="allowResize" checked>
+          <span>允许缩小分辨率（更容易达标）</span>
+        </label>
+      </div>
+
+      <div class="field">
+        <label class="label">PDF 处理方式</label>
+        <div class="segmented" data-seg="pdfMode">
+          <button data-value="smart" class="is-active">智能</button>
+          <button data-value="structure">仅结构</button>
+          <button data-value="raster">重绘页面</button>
+        </div>
+        <p class="hint" id="pdfHint">智能：先做无损结构优化，不达标再重绘页面（文字将变为图片，不可选中）。</p>
+      </div>
+    </div>
+
+    <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="选择要压缩的文件">
+      <div class="dz-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <path d="m7 9 5-5 5 5"/><path d="M12 4v12"/>
+        </svg>
+      </div>
+      <div class="dz-text">
+        <div class="dz-title">拖拽文件到此处，或 <span>点击选择</span></div>
+        <div class="dz-sub">支持 JPG / PNG / WebP / GIF / AVIF · PDF，可批量 · 也可直接 Ctrl+V 粘贴</div>
+      </div>
+      <span class="dz-cta">选择文件</span>
+    </div>
+    <input type="file" id="fileInput" multiple accept="image/*,application/pdf,.pdf" hidden>
+
+    <div class="actions-bar">
+      <button class="btn btn-primary" id="startBtn" disabled>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        开始压缩
+      </button>
+      <button class="btn btn-ghost" id="clearBtn" disabled>清空列表</button>
+      <button class="btn btn-ghost" id="zipBtn" disabled>打包下载 ZIP</button>
+      <span class="summary" id="summary"></span>
+    </div>
+  </section>
+
+  <section class="list-wrap" id="listWrap" hidden>
+    <div class="list-head">
+      <h2>处理队列</h2>
+      <span class="list-count" id="listCount"></span>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <footer class="foot">
+    目标大小是<b>上限</b>：算法会在不超过目标的前提下，尽量保留画质与分辨率。若算法判断无法再小，会给出最接近的结果并标注。
+  </footer>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="lib/pdf-lib.min.js"></script>
+<script src="lib/pdf.min.js"></script>
+<script src="js/zip.js"></script>
+<script src="js/compress-image.js"></script>
+<script src="js/compress-pdf.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
